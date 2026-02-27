@@ -10,8 +10,8 @@ DOCS_FOLDER ="data"
 CHROMA_FOLDER ="chroma_db"
 MODEL_NAME ="llama3.2:3b"
 EMBED_MODEL ="llama3.2:3b"
-CHUNK_SIZE =512
-CHUNK_OVERLAP =50
+CHUNK_SIZE = 512
+CHUNK_OVERLAP = 50
 #creating function callled load documents to load_documents 
 def load_documents():
     documents=[]
@@ -43,5 +43,15 @@ def load_documents():
     
     print(f"Total pages loaded: {len(documents)}")
     return documents
+
+def split_documents(documents):
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size= CHUNK_SIZE,
+        chunk_overlap= CHUNK_OVERLAP
+    )
+    chunk=text_splitter.split_documents(documents)
+    print(f" Total chunks created: {len(chunk)}")
+    return chunk
 if __name__== "__main__":
     docs=load_documents()
+    chunks=split_documents(docs)
