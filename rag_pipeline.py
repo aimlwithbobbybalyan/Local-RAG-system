@@ -16,7 +16,7 @@ CHUNK_OVERLAP =50
 def load_documents():
     documents=[]
     if not os.path.exists(DOCS_FOLDER):
-        os.makedir(DOCS_FOLDER)
+        os.makedirs(DOCS_FOLDER)
         print(f"created {DOCS_FOLDER} folder. Add your documents there!")
         return documents
     for filename in os.listdir(DOCS_FOLDER):
@@ -25,21 +25,23 @@ def load_documents():
         if filename.endswith(".pdf"):
             print(f"Loading PDF:{filename}")
             loader=PyPDFLoader(filepath)
-            document.extend(loader.load())
+            documents.extend(loader.load())
         
         
         elif filename.endswith(".txt"):
             print(f"Loading TXT:{filename}")
             loader=TextLoader(filepath)
-            document.extend(loader.load())
+            documents.extend(loader.load())
         
         elif filename.endswith(".docx"):
             print(f"Loading DOCX:{filename}")
             loader=Docx2txtLoader(filepath)
-            document.extend(loader.load())
+            documents.extend(loader.load())
 
         else:
             print(f"sorry mate! {filename} is not supported yet. please upload pdf, word or txt files ")
     
     print(f"Total pages loaded: {len(documents)}")
     return documents
+if __name__== "__main__":
+    docs=load_documents()
