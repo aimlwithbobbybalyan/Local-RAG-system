@@ -52,6 +52,17 @@ def split_documents(documents):
     chunk=text_splitter.split_documents(documents)
     print(f" Total chunks created: {len(chunk)}")
     return chunk
+# function 3 vectorstore() to convert chunk texts into vectors
+def  create_vectorstore(chunk):
+    print(f"creating embedding and storing it in Chroma_DB....")
+    embedding = OllamaEmbeddings(model=EMBED_MODEL)
+    vectorstore= Chroma.from_documents(
+        documents=chunks,
+        embedding=embedding,
+        persist_directory=CHROMA_FOLDER
+    )
+    print(f"vectorstores created and saved in {CHROMA_FOLDER}folder")
 if __name__== "__main__":
     docs=load_documents()
     chunks=split_documents(docs)
+    vectorstore=create_vectorstore(chunks)
