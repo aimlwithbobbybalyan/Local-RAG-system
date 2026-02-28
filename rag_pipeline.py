@@ -1,4 +1,4 @@
-from langchain_community.document_loaders import PyPDFLoader, TextLoader, Docx2txtLoader
+from langchain_community.document_loaders import PyPDFLoader, TextLoader, Docx2txtLoader                                                                                                                                                                                                                                     
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_community.vectorstores import Chroma
@@ -21,6 +21,7 @@ def load_documents():
         return documents
     for filename in os.listdir(DOCS_FOLDER):
         filepath = os.path.join(DOCS_FOLDER,filename)
+
         
         if filename.endswith(".pdf"):
             print(f"Loading PDF:{filename}")
@@ -49,11 +50,11 @@ def split_documents(documents):
         chunk_size= CHUNK_SIZE,
         chunk_overlap= CHUNK_OVERLAP
     )
-    chunk=text_splitter.split_documents(documents)
-    print(f" Total chunks created: {len(chunk)}")
-    return chunk
+    chunks=text_splitter.split_documents(documents)
+    print(f" Total chunks created: {len(chunks)}")
+    return chunks
 # function 3 vectorstore() to convert chunk texts into vectors
-def  create_vectorstore(chunk):
+def  create_vectorstore(chunks):
     print(f"creating embedding and storing it in Chroma_DB....")
     embedding = OllamaEmbeddings(model=EMBED_MODEL)
     vectorstore= Chroma.from_documents(
@@ -62,7 +63,28 @@ def  create_vectorstore(chunk):
         persist_directory=CHROMA_FOLDER
     )
     print(f"vectorstores created and saved in {CHROMA_FOLDER}folder")
+    return vectorstore
+def ask_question(vectorstore,question):
+    print(f"\nQuestion:{question}")
+    llm=Ollama(model=MODEL_NAME)
+    qa_chain = RetrievalQA.from_chain_type(
+    llm=llm,
+    chain_type="stuff",
+    retriever= vectorstore.as_retriever(search_kwargs={"k":5}),
+    return_source_documents=True
+    )
+    result=qa_chain({"query": question})
+    print(f"\nAnswer: {result['result']}")
+    print("\nSources:")
+    for doc in result['source_documents']:
+        print(f"{doc.metadata.get('source','unknown')}")
+    return result
+    
 if __name__== "__main__":
     docs=load_documents()
     chunks=split_documents(docs)
     vectorstore=create_vectorstore(chunks)
+    question=input("ask you  question:")
+    ask_question(vectorstore,question)
+
+ 
