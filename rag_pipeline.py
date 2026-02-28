@@ -4,6 +4,7 @@ from langchain_community.embeddings import OllamaEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_community.llms import Ollama
 from langchain.chains import RetrievalQA
+from langchain.prompts import PromptTemplate
 import os
 #config--------
 DOCS_FOLDER ="data"
@@ -67,13 +68,55 @@ def  create_vectorstore(chunks):
 def ask_question(vectorstore,question):
     print(f"\nQuestion:{question}")
     llm=Ollama(model=MODEL_NAME)
+    prompt_template = """
+    You are a helpful teacher who explains things clearly.
+    Use the following information to answer the question.
+    
+    Always follow this structure when answering:
+    
+    1. DEFINITION
+       Start with a simple one line definition
+       of what is being asked
+    
+    2. SIMPLE EXPLANATION
+       Explain it in simple everyday words
+       Use real life examples
+       Make anyone understand it
+    
+    3. TYPES or POINTS (if question asks for it)
+       List them clearly one by one
+       Explain each type simply with example
+    
+    4. SUMMARY
+       End with one simple sentence
+       summarizing the whole answer
+    
+    Rules:
+    - Use simple everyday words
+    - Always give real life examples
+    - Avoid unnecessary technical words
+    - Explain like teaching a friend
+    
+    Information: {context}
+    
+    Question: {question}
+    
+    Answer:
+    """
+    prompt=PromptTemplate(
+        template=prompt_template,
+        input_variables=["context","question"]
+
+    )
     qa_chain = RetrievalQA.from_chain_type(
     llm=llm,
     chain_type="stuff",
     retriever= vectorstore.as_retriever(search_kwargs={"k":5}),
-    return_source_documents=True
+    return_source_documents=True,
+    chain_type_kwargs={"prompt":prompt}
+
     )
-    result=qa_chain({"query": question})
+    result=qa_chain.invoke({"query": question})
     print(f"\nAnswer: {result['result']}")
     print("\nSources:")
     for doc in result['source_documents']:
