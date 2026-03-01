@@ -9,8 +9,8 @@ import os
 #config--------
 DOCS_FOLDER ="data"
 CHROMA_FOLDER ="chroma_db"
-MODEL_NAME ="llama3.2:3b"
-EMBED_MODEL ="llama3.2:3b"
+MODEL_NAME ="llama3.2:1b"
+EMBED_MODEL ="nomic-embed-text"
 CHUNK_SIZE = 512
 CHUNK_OVERLAP = 50
 #creating function callled load documents to load_documents 
@@ -111,7 +111,7 @@ def ask_question(vectorstore,question):
     qa_chain = RetrievalQA.from_chain_type(
     llm=llm,
     chain_type="stuff",
-    retriever= vectorstore.as_retriever(search_kwargs={"k":5}),
+    retriever= vectorstore.as_retriever(search_kwargs={"k":4}),
     return_source_documents=True,
     chain_type_kwargs={"prompt":prompt}
 
@@ -122,12 +122,20 @@ def ask_question(vectorstore,question):
     for doc in result['source_documents']:
         print(f"{doc.metadata.get('source','unknown')}")
     return result
-    
+    # add while loop for multipal questioning
 if __name__== "__main__":
     docs=load_documents()
     chunks=split_documents(docs)
     vectorstore=create_vectorstore(chunks)
-    question=input("ask you  question:")
-    ask_question(vectorstore,question)
 
- 
+    while True:
+        question = input("\nAsk your question (or type 'exit' to quit): ").strip()
+
+        if question.lower() == "exit":
+            print("Goodbye!")
+            break
+
+        if question == "":
+            print("Please type a question!")
+            continue
+        ask_question(vectorstore, question)
