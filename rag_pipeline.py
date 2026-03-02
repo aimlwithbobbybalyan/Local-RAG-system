@@ -75,7 +75,7 @@ def ask_question(vectorstore,question):
     Always follow this structure when answering:
     
     1. DEFINITION
-       Start with a simple one line definition
+       Start with a simple 4 line definition
        of what is being asked
     
     2. SIMPLE EXPLANATION
@@ -85,7 +85,7 @@ def ask_question(vectorstore,question):
     
     3. TYPES or POINTS (if question asks for it)
        List them clearly one by one
-       Explain each type simply with example
+       Explain each type in 4 line simply with example
     
     4. SUMMARY
        End with one simple sentence
@@ -122,12 +122,22 @@ def ask_question(vectorstore,question):
     for doc in result['source_documents']:
         print(f"{doc.metadata.get('source','unknown')}")
     return result
-    # add while loop for multipal questioning
+    # to load existing index instead of rebuilding every time 
 if __name__== "__main__":
-    docs=load_documents()
-    chunks=split_documents(docs)
-    vectorstore=create_vectorstore(chunks)
-
+    if os.path.exists(CHROMA_FOLDER) and os.listdir(CHROMA_FOLDER):
+        print("✅ Found existing index — skipping document loading!")
+        embedding = OllamaEmbeddings(model=EMBED_MODEL)
+        vectorstore = Chroma(
+            persist_directory=CHROMA_FOLDER,
+            embedding_function=embedding
+        )
+        print("✅ Index loaded!\n")
+    else:
+        print("⏳ First time — building index...")
+        docs = load_documents()
+        chunks = split_documents(docs)
+        vectorstore = create_vectorstore(chunks)
+# add while loop for multipal questioning
     while True:
         question = input("\nAsk your question (or type 'exit' to quit): ").strip()
 
@@ -139,3 +149,4 @@ if __name__== "__main__":
             print("Please type a question!")
             continue
         ask_question(vectorstore, question)
+    
