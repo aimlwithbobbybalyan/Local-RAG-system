@@ -22,6 +22,13 @@ def load_documents():
         os.makedirs(DOCS_FOLDER)
         print(f"created {DOCS_FOLDER} folder. Add your documents there!")
         return documents
+    #documents uploading limit 
+    files = [f for f in os.listdir(DOCS_FOLDER)
+             if f.endswith((".pdf", ".txt", ".docx", ".md"))]
+    if len(files) > 3:
+        print("⚠️ Maximum 3 documents allowed at a time!")
+        print(f"You have {len(files)} files. Please remove some from data/ folder.")
+        return documents
     for filename in os.listdir(DOCS_FOLDER):
         filepath = os.path.join(DOCS_FOLDER, filename)
         if filename.endswith(".pdf"):
@@ -479,4 +486,4 @@ if __name__ == "__main__":
         if question == "":
             print("Please type a question!")
             continue
-        ask_question(vectorstore, question)
+        ask_question(vectorstore, question) 
