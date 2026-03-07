@@ -1,9 +1,7 @@
-venv/
 __pycache__/
 *.pyc
 chroma_db/
+uploads/
 .env
+venv/
 *.egg-info/
-dist/
-build/
-.DS_Store

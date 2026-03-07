@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LocalRAG — Document Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<!-- ══ SHARED LOGO SYMBOL — used on splash, header, welcome screen ══ -->
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute;overflow:hidden">
+  <defs>
+    <radialGradient id="logoBg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1e2a5e"/>
+      <stop offset="100%" stop-color="#080e2a"/>
+    </radialGradient>
+    <radialGradient id="logoGl" cx="32%" cy="28%" r="65%">
+      <stop offset="0%" stop-color="#fff" stop-opacity="1"/>
+      <stop offset="35%" stop-color="#e8eeff" stop-opacity=".9"/>
+      <stop offset="100%" stop-color="#3b5bdb" stop-opacity=".2"/>
+    </radialGradient>
+    <radialGradient id="logoCorona" cx="50%" cy="50%" r="50%">
+      <stop offset="55%" stop-color="#4a6cf7" stop-opacity="0"/>
+      <stop offset="80%" stop-color="#5c7cfa" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#7c9fff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="logoSweep" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="white" stop-opacity="0"/>
+      <stop offset="45%"  stop-color="white" stop-opacity="0"/>
+      <stop offset="50%"  stop-color="white" stop-opacity="0.38"/>
+      <stop offset="55%"  stop-color="white" stop-opacity="0"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="logoClip"><circle cx="60" cy="60" r="50"/></clipPath>
+    <filter id="logoGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="logoSoftGlow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="logoRayBlur"><feGaussianBlur stdDeviation="1.5"/></filter>
+
+    <symbol id="logoSymbol" viewBox="0 0 120 120" overflow="visible">
+      <!-- Corona glow -->
+      <circle cx="60" cy="60" r="72" fill="url(#logoCorona)">
+        <animate attributeName="r" values="68;80;68" dur="3s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.7;1;0.7" dur="3s" repeatCount="indefinite"/>
+      </circle>
+      <!-- 8 rotating rays -->
+      <g filter="url(#logoRayBlur)" opacity="0.5">
+        <g><line x1="60" y1="4" x2="60" y2="18" stroke="white" stroke-width="1.3" opacity="0.7"/>
+          <animateTransform attributeName="transform" type="rotate" from="0 60 60" to="360 60 60" dur="12s" repeatCount="indefinite"/></g>
+        <g><line x1="60" y1="4" x2="60" y2="15" stroke="white" stroke-width="0.9" opacity="0.5"/>
+          <animateTransform attributeName="transform" type="rotate" from="45 60 60" to="405 60 60" dur="12s" repeatCount="indefinite"/></g>
+        <g><line x1="60" y1="4" x2="60" y2="18" stroke="white" stroke-width="1.3" opacity="0.7"/>
+          <animateTransform attributeName="transform" type="rotate" from="90 60 60" to="450 60 60" dur="12s" repeatCount="indefinite"/></g>
+        <g><line x1="60" y1="4" x2="60" y2="15" stroke="white" stroke-width="0.9" opacity="0.5"/>
+          <animateTransform attributeName="transform" type="rotate" from="135 60 60" to="495 60 60" dur="12s" repeatCount="indefinite"/></g>
+        <g><line x1="60" y1="4" x2="60" y2="18" stroke="white" stroke-width="1.3" opacity="0.7"/>
+          <animateTransform attributeName="transform" type="rotate" from="180 60 60" to="540 60 60" dur="12s" repeatCount="indefinite"/></g>
+        <g><line x1="60" y1="4" x2="60" y2="15" stroke="white" stroke-width="0.9" opacity="0.5"/>
+          <animateTransform attributeName="transform" type="rotate" from="225 60 60" to="585 60 60" dur="12s" repeatCount="indefinite"/></g>
+        <g><line x1="60" y1="4" x2="60" y2="18" stroke="white" stroke-width="1.3" opacity="0.7"/>
+          <animateTransform attributeName="transform" type="rotate" from="270 60 60" to="630 60 60" dur="12s" repeatCount="indefinite"/></g>
+        <g><line x1="60" y1="4" x2="60" y2="15" stroke="white" stroke-width="0.9" opacity="0.5"/>
+          <animateTransform attributeName="transform" type="rotate" from="315 60 60" to="675 60 60" dur="12s" repeatCount="indefinite"/></g>
+      </g>
+      <!-- Pulsing bright rays -->
+      <g opacity="0.45">
+        <line x1="60" y1="2" x2="60" y2="20" stroke="#a5c0ff" stroke-width="1.6" filter="url(#logoRayBlur)">
+          <animate attributeName="opacity" values="0.2;1;0.2" dur="2s" repeatCount="indefinite"/>
+          <animateTransform attributeName="transform" type="rotate" from="20 60 60" to="380 60 60" dur="12s" repeatCount="indefinite"/>
+        </line>
+        <line x1="60" y1="2" x2="60" y2="20" stroke="#c5d8ff" stroke-width="1.6" filter="url(#logoRayBlur)">
+          <animate attributeName="opacity" values="0.2;1;0.2" dur="2s" begin="1s" repeatCount="indefinite"/>
+          <animateTransform attributeName="transform" type="rotate" from="200 60 60" to="560 60 60" dur="12s" repeatCount="indefinite"/>
+        </line>
+      </g>
+      <!-- Outer pulse ring -->
+      <circle cx="60" cy="60" r="56" fill="none" stroke="#4a6cf7" stroke-width="0.7" opacity="0.25">
+        <animate attributeName="r" values="54;59;54" dur="3s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.2;0.55;0.2" dur="3s" repeatCount="indefinite"/>
+      </circle>
+      <!-- Orbital rings -->
+      <ellipse cx="60" cy="60" rx="52" ry="14" fill="none" stroke="#5c7cfa" stroke-width="0.8" opacity="0.28">
+        <animateTransform attributeName="transform" type="rotate" from="0 60 60" to="360 60 60" dur="8s" repeatCount="indefinite"/>
+      </ellipse>
+      <ellipse cx="60" cy="60" rx="14" ry="52" fill="none" stroke="#9775fa" stroke-width="0.6" opacity="0.2">
+        <animateTransform attributeName="transform" type="rotate" from="40 60 60" to="400 60 60" dur="12s" repeatCount="indefinite"/>
+      </ellipse>
+      <!-- Sphere body -->
+      <circle cx="60" cy="60" r="54" fill="url(#logoBg)"/>
+      <circle cx="60" cy="60" r="50" fill="url(#logoGl)" opacity="0.88"/>
+      <!-- Inner breathing glow -->
+      <circle cx="60" cy="60" r="50" fill="none" stroke="#5c7cfa" stroke-width="8" clip-path="url(#logoClip)">
+        <animate attributeName="opacity" values="0.04;0.16;0.04" dur="2.5s" repeatCount="indefinite"/>
+      </circle>
+      <!-- Shimmer sweep -->
+      <rect x="10" y="10" width="100" height="100" rx="50" fill="url(#logoSweep)" clip-path="url(#logoClip)" opacity="0.8">
+        <animateTransform attributeName="transform" type="translate" values="-120 -120;120 120;-120 -120" dur="3.5s" repeatCount="indefinite"/>
+      </rect>
+      <!-- Network edges -->
+      <g clip-path="url(#logoClip)" stroke="white" stroke-width="1.2" opacity="0.3">
+        <line x1="36" y1="38" x2="60" y2="53"><animate attributeName="opacity" values="0.3;0.7;0.3" dur="2.1s" repeatCount="indefinite"/></line>
+        <line x1="60" y1="53" x2="84" y2="34"><animate attributeName="opacity" values="0.3;0.6;0.3" dur="1.8s" begin="0.3s" repeatCount="indefinite"/></line>
+        <line x1="60" y1="53" x2="76" y2="73"><animate attributeName="opacity" values="0.3;0.65;0.3" dur="2.4s" begin="0.6s" repeatCount="indefinite"/></line>
+        <line x1="36" y1="38" x2="46" y2="70"><animate attributeName="opacity" values="0.3;0.55;0.3" dur="1.9s" begin="0.9s" repeatCount="indefinite"/></line>
+        <line x1="46" y1="70" x2="76" y2="73"><animate attributeName="opacity" values="0.3;0.6;0.3" dur="2.2s" begin="0.4s" repeatCount="indefinite"/></line>
+      </g>
+      <!-- Traveling light pulses -->
+      <g clip-path="url(#logoClip)" filter="url(#logoGlow)">
+        <circle r="1.8" fill="white">
+          <animate attributeName="cx" values="36;60" dur="2s" repeatCount="indefinite"/>
+          <animate attributeName="cy" values="38;53" dur="2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite" keyTimes="0;0.4;1"/>
+        </circle>
+        <circle r="1.8" fill="#a5c0ff">
+          <animate attributeName="cx" values="60;84" dur="2.3s" begin="0.5s" repeatCount="indefinite"/>
+          <animate attributeName="cy" values="53;34" dur="2.3s" begin="0.5s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;1;0" dur="2.3s" begin="0.5s" repeatCount="indefinite" keyTimes="0;0.4;1"/>
+        </circle>
+        <circle r="1.5" fill="white">
+          <animate attributeName="cx" values="46;76" dur="1.9s" begin="1.1s" repeatCount="indefinite"/>
+          <animate attributeName="cy" values="70;73" dur="1.9s" begin="1.1s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0;0.9;0" dur="1.9s" begin="1.1s" repeatCount="indefinite" keyTimes="0;0.4;1"/>
+        </circle>
+      </g>
+      <!-- Network nodes -->
+      <g clip-path="url(#logoClip)" filter="url(#logoSoftGlow)">
+        <circle cx="60" cy="53" r="5.5" fill="white"><animate attributeName="r" values="5;6.5;5" dur="1.8s" repeatCount="indefinite"/></circle>
+        <circle cx="36" cy="38" r="3.5" fill="white" opacity="0.9"><animate attributeName="r" values="3;4.2;3" dur="2.2s" begin="0.3s" repeatCount="indefinite"/></circle>
+        <circle cx="84" cy="34" r="3" fill="white" opacity="0.85"><animate attributeName="r" values="2.5;3.8;2.5" dur="1.9s" begin="0.7s" repeatCount="indefinite"/></circle>
+        <circle cx="46" cy="70" r="3.5" fill="white" opacity="0.9"><animate attributeName="r" values="3;4;3" dur="2.4s" begin="0.5s" repeatCount="indefinite"/></circle>
+        <circle cx="76" cy="73" r="4" fill="white" opacity="0.9"><animate attributeName="r" values="3.5;5;3.5" dur="2s" begin="1s" repeatCount="indefinite"/></circle>
+      </g>
+      <!-- Specular highlight -->
+      <ellipse cx="44" cy="37" rx="12" ry="8" fill="white" opacity="0.15" transform="rotate(-30 44 37)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ── SPLASH SCREEN ── -->
+<div class="splash" id="splash">
+  <div class="splash-glow"></div>
+  <div class="splash-stars" id="splashStars"></div>
+
+  <!-- Logo — no background, pure glow -->
+  <div class="splash-logo-wrap">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="190" height="190" style="overflow:visible">
+      <use href="#logoSymbol" x="0" y="0" width="120" height="120"/>
+    </svg>
+  </div>
+
+  <div class="splash-brand">
+    <span class="splash-local">Local</span>
+    <span class="splash-rag">RAG</span>
+  </div>
+
+  <div class="splash-tagline"><span id="splashTyped"></span><span class="splash-cursor"></span></div>
+
+  <div class="splash-features">
+    <div class="splash-feat"><div class="splash-feat-text">100% Offline</div></div>
+    <div class="splash-feat"><div class="splash-feat-text">100% Private</div></div>
+    <div class="splash-feat"><div class="splash-feat-text">No Cloud</div></div>
+  </div>
+
+  <div class="splash-bar-wrap">
+    <div class="splash-bar-track"><div class="splash-bar-fill" id="splashFill"></div></div>
+    <div class="splash-bar-label" id="splashLabel">Initializing...</div>
+  </div>
+
+  <div class="splash-version">LocalRAG v1.0.0 · College Project 2025</div>
+</div>
+
+<div class="app" id="mainApp" style="opacity:0;transition:opacity .6s ease;">
+
+<!-- HEADER -->
+<header>
+ <div class="logo">
+ <div class="sphere-wrap">
+ <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="42" height="42" style="overflow:visible">
+   <use href="#logoSymbol" x="0" y="0" width="120" height="120"/>
+ </svg>
+ </div>
+ <div class="brand">
+ <div class="brand-name"><span class="b-local">Local</span><span class="b-rag">RAG</span></div>
+ <div class="b-sub">Document Intelligence · 100% Local & Private</div>
+ </div>
+ </div>
+ <div class="header-right">
+ <div class="hpill"><div class="hdot"></div>qwen2.5:3b</div>
+ <div class="hpill"><div class="hdot" style="background:#7048e8;box-shadow:0 0 6px rgba(112,72,232,.6);"></div>nomic-embed-text</div>
+ <a class="social-btn" href="https://github.com/YOUR_USERNAME" target="_blank" title="GitHub">
+   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+ </a>
+ <a class="social-btn linkedin" href="https://linkedin.com/in/YOUR_USERNAME" target="_blank" title="LinkedIn">
+   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+ </a>
+
+ <!-- Three dots menu -->
+ <div class="menu-wrap" id="menuWrap">
+   <button class="social-btn" onclick="toggleMenu()" id="menuBtn" title="More options">
+     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+   </button>
+   <div class="dropdown" id="dropdown">
+     <div class="dd-header">LocalRAG <span>v1.0.0</span></div>
+     <div class="dd-item" onclick="toggleDark()">
+       <svg id="darkIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+       <span id="darkLabel">Dark mode</span>
+     </div>
+     <div class="dd-divider"></div>
+     <div class="dd-item" onclick="showModal('help')">
+       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+       Help
+     </div>
+     <div class="dd-item" onclick="showModal('about')">
+       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+       About
+     </div>
+     <div class="dd-item" onclick="showModal('privacy')">
+       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+       Privacy Policy
+     </div>
+     <div class="dd-divider"></div>
+     <div class="dd-item" onclick="location.href='https://github.com/YOUR_USERNAME'">
+       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+       View on GitHub
+     </div>
+     <div class="dd-divider"></div>
+     <div class="dd-item" onclick="location.href='mailto:YOUR_EMAIL@gmail.com'">
+       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+       Contact Me
+     </div>
+     <div class="dd-item" onclick="location.href='YOUR_RESUME_LINK'" target="_blank">
+       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+       My Resume
+     </div>
+   </div>
+ </div>
+
+ </div>
+</header>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title" id="modalTitle"></div>
+      <button class="modal-close" onclick="closeModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- UPLOAD OVERLAY MODAL -->
+<div class="upload-overlay" id="uploadOverlay">
+  <div class="upload-modal-box" id="uploadModalBox"
+       ondragover="event.preventDefault();document.getElementById('uploadModalBox').classList.add('drag-active')"
+       ondragleave="document.getElementById('uploadModalBox').classList.remove('drag-active')"
+       ondrop="event.preventDefault();document.getElementById('uploadModalBox').classList.remove('drag-active');handleUploadFromOverlay(event.dataTransfer.files[0])">
+    <button class="upload-modal-close" onclick="closeUploadOverlay()">&#x2715;</button>
+    <div id="uploadOverlayContent">
+      <div class="upload-modal-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+      </div>
+      <div class="upload-modal-title">Upload your document</div>
+      <div class="upload-modal-sub">Drag and drop here, or click below to browse.<br>Supports PDF, DOCX, TXT, MD — max 50MB</div>
+      <div class="file-types" style="justify-content:center;margin-bottom:20px;">
+        <div class="ftype pdf">PDF</div><div class="ftype txt">TXT</div><div class="ftype docx">DOCX</div><div class="ftype md">MD</div>
+      </div>
+      <button class="upload-modal-btn" onclick="triggerFileInput()">Choose File</button>
+    </div>
+  </div>
+</div>
+
+<!-- BODY -->
+<div class="body">
+
+ <!-- SIDEBAR -->
+ <div class="sidebar">
+
+ <!-- Upload -->
+ <div class="sb-section">
+ <div class="sb-head">
+ <div class="sb-title"> Documents</div>
+ <div class="sb-btn" onclick="simulateUpload()">+ Add</div>
+ </div>
+ <div class="upload-zone" onclick="simulateUpload()">
+ <div class="upload-icon"><span></span></div>
+ <div class="upload-title">Drop your files here</div>
+ <div class="upload-sub">or click to browse</div>
+ <div class="file-types">
+ <div class="ftype pdf">PDF</div>
+ <div class="ftype txt">TXT</div>
+ <div class="ftype docx">DOCX</div>
+ <div class="ftype md">MD</div>
+ </div>
+ </div>
+ <div class="prog-wrap" id="progWrap">
+ <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+ <div class="prog-label" id="progLabel">Loading...</div>
+ </div>
+ </div>
+
+ <!-- Library -->
+ <div class="sb-section">
+ <div class="sb-head">
+ <div class="sb-title"> Library <span id="docCounter" style="font-size:.65rem;font-weight:700;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1px 7px;margin-left:4px;">0/3</span></div>
+ <div class="sb-btn">All</div>
+ </div>
+ <div class="doc-list" id="docList"></div>
+ </div>
+
+ <!-- Stats -->
+ <div class="sb-section">
+ <div class="sb-head"><div class="sb-title"> Stats</div></div>
+ <div class="stats-grid">
+ <div class="stat-card"><div class="stat-val" id="statDocs">0</div><div class="stat-lbl">Documents</div></div>
+ <div class="stat-card"><div class="stat-val" id="statChunks">0</div><div class="stat-lbl">Chunks</div></div>
+ <div class="stat-card"><div class="stat-val" id="statChunkSize">512</div><div class="stat-lbl">Chunk size</div></div>
+ <div class="stat-card"><div class="stat-val" id="statK">k=5</div><div class="stat-lbl">Top results</div></div>
+ </div>
+ </div>
+
+ <!-- Mode -->
+ <div class="sb-section">
+ <div class="sb-head"><div class="sb-title"> Mode</div></div>
+ <div class="modes">
+ <div class="mode-item active" onclick="switchMode(this,'chat')">
+ <div class="mode-icon"></div>
+ <div class="mode-info"><div class="mode-name">Chat</div><div class="mode-desc">Ask anything</div></div>
+ <div class="mode-dot"></div>
+ </div>
+ <div class="mode-item" onclick="switchMode(this,'summary')">
+ <div class="mode-icon"></div>
+ <div class="mode-info"><div class="mode-name">Summary</div><div class="mode-desc">Document overview</div></div>
+ <div class="mode-dot"></div>
+ </div>
+ <div class="mode-item" onclick="switchMode(this,'quiz')">
+ <div class="mode-icon"></div>
+ <div class="mode-info"><div class="mode-name">Quiz</div><div class="mode-desc">Test knowledge</div></div>
+ <div class="mode-dot"></div>
+ </div>
+ <div class="mode-item" onclick="switchMode(this,'flashcard')">
+ <div class="mode-icon"></div>
+ <div class="mode-info"><div class="mode-name">Flashcards</div><div class="mode-desc">Quick revision</div></div>
+ <div class="mode-dot"></div>
+ </div>
+ <div class="mode-item" onclick="switchMode(this,'exam')">
+ <div class="mode-icon"></div>
+ <div class="mode-info"><div class="mode-name">Exam Prep</div><div class="mode-desc">All exam questions</div></div>
+ <div class="mode-dot"></div>
+ </div>
+ </div>
+ </div>
+
+ <!-- History -->
+ <div class="sb-section">
+ <div class="sb-head"><div class="sb-title"> History</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="sb-btn" onclick="clearHistory()">Clear</div>
+          <button class="del-index-btn" onclick="deleteIndex()" id="delIndexBtn" title="Delete chroma_db index">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+            </svg>
+          </button>
+        </div></div>
+ <div class="hist-list"></div>
+ </div>
+
+ </div>
+
+ <!-- MAIN -->
+ <div class="main">
+ <!-- Animated star field -->
+ <canvas id="starCanvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.7"></canvas>
+
+ <!-- Tabs -->
+ <div class="tabs">
+ <div class="tab active" onclick="setTab(this,'chat')"> Chat</div>
+ <div class="tab" onclick="setTab(this,'summary')"> Summary</div>
+ <div class="tab" onclick="setTab(this,'quiz')"> Quiz</div>
+ <div class="tab" onclick="setTab(this,'flashcard')"> Flashcards</div>
+ <div class="tab" onclick="setTab(this,'exam')"> Exam</div>
+ </div>
+
+ <!-- CHAT PANEL -->
+ <div id="chatPanel" class="panel active">
+
+ <div class="pipeline-wrap" id="pipelineWrap">
+   <div class="pipeline-top">
+     <div class="pipeline-title">RAG Pipeline</div>
+     <div class="pipeline-status" id="pipelineStatus">Starting...</div>
+   </div>
+   <div class="pipeline-steps">
+     <div class="ps" id="ps1">Embed</div><div class="ps-arr">›</div>
+     <div class="ps" id="ps2">Retrieve</div><div class="ps-arr">›</div>
+     <div class="ps" id="ps3">Rank</div><div class="ps-arr">›</div>
+     <div class="ps" id="ps4">Generate</div>
+   </div>
+   <div class="pipeline-bar-wrap">
+     <div class="pipeline-bar-track">
+       <div class="pipeline-bar-fill" id="pipelineBarFill"></div>
+     </div>
+     <div class="pipeline-bar-labels">
+       <div class="pipeline-bar-pct" id="pipelineBarPct">0%</div>
+       <div class="pipeline-bar-est" id="pipelineBarEst">est. ~30 sec</div>
+     </div>
+   </div>
+ </div>
+
+ <div class="chat-area" id="chatArea">
+ <div class="welcome" id="welcomeEl">
+
+ <div style="animation:float 4s ease-in-out infinite; filter:drop-shadow(0 4px 20px rgba(59,91,219,.5)) drop-shadow(0 0 40px rgba(92,124,250,.25))">
+ <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="80" height="80" style="overflow:visible">
+   <use href="#logoSymbol" x="0" y="0" width="120" height="120"/>
+ </svg>
+ </div>
+
+ <h2 id="typewriterEl"><span id="twLine1"></span><br><span id="twLine2" style="color:var(--accent)"></span></h2>
+ <div class="welcome-note"> 100% Local · Private · Never leaves your computer</div>
+
+ <!-- Feature cards -->
+ <div class="feature-grid">
+ <div class="feature-card" onclick="setTab(document.querySelectorAll('.tab')[1],'summary')">
+ <div class="fc-icon"></div>
+ <div class="fc-title">Auto Summary</div>
+ <div class="fc-desc">Overview of your document</div>
+ </div>
+ <div class="feature-card" onclick="setTab(document.querySelectorAll('.tab')[2],'quiz')">
+ <div class="fc-icon"></div>
+ <div class="fc-title">Quiz Generator</div>
+ <div class="fc-desc">Test your knowledge</div>
+ </div>
+ <div class="feature-card" onclick="setTab(document.querySelectorAll('.tab')[3],'flashcard')">
+ <div class="fc-icon"></div>
+ <div class="fc-title">Flashcards</div>
+ <div class="fc-desc">Quick revision cards</div>
+ </div>
+ <div class="feature-card" onclick="openExamPanel()">
+ <div class="fc-icon"></div>
+ <div class="fc-title">Exam Questions</div>
+ <div class="fc-desc">All possible exam Qs</div>
+ </div>
+ </div>
+
+ <div class="chips">
+ <div class="chip" onclick="setTab(document.querySelectorAll('.tab')[1],'summary')"> What is this about?</div>
+ <div class="chip" onclick="sendQWithTag('Explain the main concepts simply','Explain simply')"> Explain simply</div>
+ <div class="chip" onclick="openExamPanel()"> Exam questions</div>
+ <div class="chip" onclick="sendQWithTag('What are the key points?','Key points')"> Key points</div>
+ </div>
+
+ </div>
+ </div>
+
+ <div class="input-area">
+ <div class="input-wrap">
+ <div class="input-card">
+
+ <!-- Collapsible prompt chips -->
+ <div class="prompt-suggestions" id="promptSuggestions">
+   <div class="prompt-chip" onclick="sendQWithTag('Explain the key concepts in simple words','Explain simply')">Explain simply</div>
+   <div class="prompt-chip" onclick="sendQWithTag('Give me 5 important points to remember','5 key points')">5 key points</div>
+   <div class="prompt-chip" onclick="openExamPanel()">Exam questions</div>
+   <div class="prompt-chip" onclick="sendQ('Compare and contrast the main concepts')">Compare concepts</div>
+   <div class="prompt-chip" onclick="sendQ('Give me short revision notes')">Revision notes</div>
+ </div>
+
+ <div class="input-row">
+ <button class="prompt-toggle" id="promptToggle" onclick="togglePrompts()" title="Show prompt suggestions">
+   <svg id="promptArrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+     <polyline points="18 15 12 9 6 15"/>
+   </svg>
+ </button>
+ <textarea class="chat-input" id="chatInput" placeholder="Ask anything about your documents..." rows="1"
+ oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+ <button class="send-btn" onclick="sendMessage()">
+   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+ </button>
+ </div>
+ <div class="input-footer">
+ <div class="input-tags">
+ <div class="itag on" onclick="toggleTag(this)">RAG mode</div>
+ <div class="itag on" onclick="toggleTag(this)">Teacher</div>
+ <div class="itag" onclick="toggleTag(this)">Chat</div>
+ <div class="itag" onclick="toggleTag(this)">Technical</div>
+ <div class="itag" onclick="toggleTag(this)">Summary</div>
+ <div class="itag" onclick="toggleTag(this)">Bullet points</div>
+ <div class="itag" onclick="toggleTag(this)">Cite sources</div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ </div>
+
+ <!-- SUMMARY PANEL -->
+ <div id="summaryPanel" class="panel">
+ <div class="summary-wrap">
+ <div class="panel-header">
+ <div class="panel-title"> Document Summary</div>
+ <div class="panel-sub">AI generated overview of your documents</div>
+ </div>
+ </div>
+ </div>
+
+ <!-- QUIZ PANEL -->
+ <div id="quizPanel" class="panel">
+ <div class="quiz-wrap" id="quizWrap">
+ <div class="panel-header">
+ <div class="panel-title"> Quiz Generator</div>
+ <div class="panel-sub">15 questions covering your entire document</div>
+ </div>
+ </div>
+ </div>
+
+ <!-- FLASHCARD PANEL -->
+ <div id="flashcardPanel" class="panel">
+ <div class="flash-wrap">
+ <div class="panel-header" style="align-self:flex-start;width:100%;max-width:560px;">
+ <div class="panel-title"> Flashcards</div>
+ <div class="panel-sub">Click card to reveal answer · Study mode</div>
+ </div>
+
+ <div class="flashcard" onclick="flipCard()" id="flashcard">
+ <div class="fc-label" id="fcLabel">Question</div>
+ <div class="fc-content" id="fcContent">Upload a document to generate flashcards</div>
+ <div class="fc-hint"> Click to reveal answer</div>
+ </div>
+
+ <div class="flash-nav">
+ <div class="fn-btn" onclick="prevCard()">← Prev</div>
+ <div class="fn-count" id="fcCount">0 / 0</div>
+ <div class="fn-btn" onclick="nextCard()">Next →</div>
+ </div>
+
+ <div class="flash-grid" id="flashGrid"></div>
+
+ </div>
+ </div>
+
+ <!-- EXAM PANEL -->
+ <div id="examPanel" class="panel">
+ <div class="exam-wrap" id="examWrap">
+ <div class="panel-header">
+ <div class="panel-title"> Exam Questions</div>
+ <div class="panel-sub">All possible important questions from your document</div>
+ </div>
+ </div>
+ </div>
+
+ </div>
+</div>
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
