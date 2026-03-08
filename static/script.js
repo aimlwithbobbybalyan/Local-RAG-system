@@ -1,4 +1,4 @@
-  let started = false;
+let started = false;
   let flipped  = false;
   let cardIdx  = 0;
 
@@ -212,6 +212,7 @@
         pf.style.width = '100%';
         pl.textContent = `${data.filename} indexed! (${data.chunks} chunks)`;
         summaryLoaded = false; quizLoaded = false; flashLoaded = false; examLoaded = false;
+        startCachePolling(); // poll until pre-generation is done
 
         // Show success state in overlay
         if (fromOverlay) {
@@ -331,28 +332,145 @@
     input.value = ''; input.style.height = 'auto';
     showPipeline(); showThinking();
 
-    // collect active tags
     const activeTags = [...document.querySelectorAll('.itag.on')].map(t => t.textContent.trim());
 
+    // ── STREAMING CHAT ──────────────────────────────────────────────────
     try {
-      const res  = await fetch('/chat', {
+      const res = await fetch('/chat/stream', {
         method:  'POST',
         headers: { 'Content-Type':'application/json' },
         body:    JSON.stringify({ question:text, tags:activeTags })
       });
-      const data = await res.json();
+
+      if (!res.ok) throw new Error('Stream request failed');
+
       hideThinking(); hidePipeline();
 
-      if (data.error) {
-        addAIMsg({ text:'Warning: ' + data.error, sources:[], conf:0 });
-      } else {
-        addAIMsg({ text:formatAnswer(data.answer), sources:data.sources||[], conf:data.confidence||85 });
-        addToHistory(text);
+      // FIX 1: use a direct reference, NOT getElementById with hardcoded id
+      // so multiple messages never clash with each other
+      const area   = document.getElementById('chatArea');
+      const msgRow = document.createElement('div');
+      msgRow.className = 'msg-row ai';
+      msgRow.innerHTML = `${aiAva()}<div class="msg-body"><div class="bubble"></div></div>`;
+      area.appendChild(msgRow);
+      area.scrollTop = area.scrollHeight;
+
+      // FIX 2: reference bubble directly from the element we just created
+      const bubble = msgRow.querySelector('.bubble');
+      let fullText = '';
+
+      const reader  = res.body.getReader();
+      const decoder = new TextDecoder();
+
+      // FIX 3: show a blinking cursor while tokens arrive
+      bubble.innerHTML = '<span class="tw-cursor"></span>';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const payload = line.slice(6).trim();
+          if (payload === '[DONE]') break;
+          try {
+            const parsed = JSON.parse(payload);
+            if (parsed.token) {
+              fullText += parsed.token;
+              // Show text + keep cursor at end while streaming
+              bubble.innerHTML = formatAnswer(fullText) + '<span class="tw-cursor"></span>';
+              area.scrollTop   = area.scrollHeight;
+            }
+            if (parsed.error) {
+              bubble.innerHTML = 'Warning: ' + parsed.error;
+            }
+          } catch(e) { /* partial JSON chunk, skip */ }
+        }
       }
-    } catch(e) {
+
+      // FIX 4: remove cursor when done
+      bubble.innerHTML = formatAnswer(fullText);
+      area.scrollTop   = area.scrollHeight;
+      addToHistory(text);
+
+    } catch(streamErr) {
+      // Fallback to non-streaming if stream fails or not supported
       hideThinking(); hidePipeline();
-      addAIMsg({ text:'Warning: Could not reach Flask. Make sure app.py is running!', sources:[], conf:0 });
+      try {
+        const res  = await fetch('/chat', {
+          method:  'POST',
+          headers: { 'Content-Type':'application/json' },
+          body:    JSON.stringify({ question:text, tags:activeTags })
+        });
+        const data = await res.json();
+        if (data.error) {
+          addAIMsg({ text:'Warning: ' + data.error, sources:[], conf:0 });
+        } else {
+          addAIMsg({ text:formatAnswer(data.answer), sources:data.sources||[], conf:data.confidence||85 });
+          addToHistory(text);
+        }
+      } catch(e) {
+        addAIMsg({ text:'Warning: Could not reach Flask. Make sure app.py is running!', sources:[], conf:0 });
+      }
     }
+  }
+
+  // ── CACHE STATUS POLLING ─────────────────────────────────────────────────
+  // After upload, poll /cache/status every 5s
+  // Show a small "Generating study materials..." banner until ready
+  let _cachePoller = null;
+
+  function startCachePolling() {
+    if (_cachePoller) clearInterval(_cachePoller);
+    showCacheBanner('Generating study materials in background...');
+    _cachePoller = setInterval(async () => {
+      try {
+        const res  = await fetch('/cache/status');
+        const data = await res.json();
+        if (data.all_ready) {
+          clearInterval(_cachePoller); _cachePoller = null;
+          showCacheBanner('Study materials ready! Quiz, Flashcards & Exam are instant.', true);
+          setTimeout(hideCacheBanner, 3500);
+        } else if (!data.generating) {
+          clearInterval(_cachePoller); _cachePoller = null;
+          hideCacheBanner();
+        }
+      } catch(e) { /* ignore */ }
+    }, 5000);
+  }
+
+  function showCacheBanner(msg, success = false) {
+    let b = document.getElementById('cacheBanner');
+    if (!b) {
+      b = document.createElement('div');
+      b.id = 'cacheBanner';
+      b.style.cssText = `
+        position:fixed; bottom:20px; right:20px; z-index:999;
+        padding:10px 18px; border-radius:10px; font-size:.78rem; font-weight:600;
+        display:flex; align-items:center; gap:8px;
+        box-shadow:0 4px 20px rgba(0,0,0,.15);
+        animation:msgIn .3s ease;
+        transition:background .3s, border-color .3s;
+      `;
+      document.body.appendChild(b);
+    }
+    if (success) {
+      b.style.background = 'var(--green-soft)';
+      b.style.border     = '1px solid var(--green)';
+      b.style.color      = 'var(--green)';
+      b.innerHTML        = `<span>✅</span> ${msg}`;
+    } else {
+      b.style.background = 'var(--accent-soft)';
+      b.style.border     = '1px solid var(--accent-mid)';
+      b.style.color      = 'var(--accent)';
+      b.innerHTML        = `<span style="animation:spin .8s linear infinite;display:inline-block">⟳</span> ${msg}`;
+    }
+  }
+
+  function hideCacheBanner() {
+    const b = document.getElementById('cacheBanner');
+    if (b) { b.style.opacity = '0'; setTimeout(() => b.remove(), 300); }
   }
 
   // convert plain text to HTML formatting
