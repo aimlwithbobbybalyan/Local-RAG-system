@@ -80,3 +80,4 @@ htmlcov/
 *.bak
 *.swp
 *.swo
+benchmark.py

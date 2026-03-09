@@ -1,4 +1,4 @@
- :root {
+:root {
  --bg: #f0f2f7;
  --white: #ffffff;
  --border: #e2e5ef;
@@ -580,8 +580,46 @@
  .doc-info { flex:1; min-width:0; }
  .doc-name { font-size:.78rem; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
  .doc-meta { font-size:.68rem; color:var(--muted); margin-top:1px; }
- .doc-del { font-size:11px; cursor:pointer; color:var(--muted); padding:3px; border-radius:4px; }
- .doc-del:hover { color:#e03131; background:#fff0f0; }
+ .doc-del-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 6px; border: none;
+  background: transparent; color: var(--muted);
+  cursor: pointer; flex-shrink: 0; margin-left: auto;
+  transition: background .15s, color .15s;
+}
+.doc-del-btn:hover { background: #fff0f0; color: #e03131; }
+body.dark .doc-del-btn:hover { background: rgba(224,49,49,.15); color: #ff6b6b; }
+
+/* Active doc label bar above tabs */
+.active-doc-bar {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 16px 0; font-size: .72rem; color: var(--muted);
+  animation: fadeIn .3s ease;
+}
+.active-doc-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); flex-shrink: 0;
+}
+.active-doc-label b { color: var(--text); font-weight: 600; }
+
+/* Summary card fade-in */
+@keyframes sumFadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.sum-fade-in {
+  opacity: 0;
+  animation: sumFadeUp .4s cubic-bezier(.34,1.1,.64,1) forwards;
+}
+
+/* Chat bubble fade-in */
+@keyframes msgFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.msg-fade-in {
+  animation: msgFadeIn .3s cubic-bezier(.34,1.1,.64,1) both;
+}
 
  /* Stats */
  .stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }

@@ -49,6 +49,7 @@ let started = false;
       data.documents.forEach((doc, i) => {
         const el = document.createElement('div');
         el.className = 'doc-item' + (i === 0 ? ' active' : '');
+        el.setAttribute('data-filename', doc.name);
         el.setAttribute('onclick', 'selectDoc(this)');
         el.innerHTML = `
           <div class="doc-icon"></div>
@@ -56,10 +57,35 @@ let started = false;
             <div class="doc-name">${doc.name}</div>
             <div class="doc-meta">Indexed · ${doc.size_kb} KB</div>
           </div>
-          <div class="doc-del" onclick="event.stopPropagation();deleteDocument('${doc.name}',this.closest('.doc-item'))"></div>`;
+          <button class="doc-del-btn" title="Remove file" onclick="event.stopPropagation();deleteDocument('${doc.name}',this.closest('.doc-item'))">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+            </svg>
+          </button>`;
         list.appendChild(el);
       });
+      updateActiveDocLabel();
     } catch(e) { console.log('Could not load documents'); }
+  }
+
+  // Show which doc is active as a small pill above the tabs
+  function updateActiveDocLabel() {
+    const active = document.querySelector('.doc-item.active');
+    let bar = document.getElementById('activeDocBar');
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.id = 'activeDocBar';
+      bar.className = 'active-doc-bar';
+      const tabRow = document.querySelector('.tabs');
+      if (tabRow) tabRow.parentNode.insertBefore(bar, tabRow);
+    }
+    if (active) {
+      const name = active.querySelector('.doc-name')?.textContent || '';
+      bar.innerHTML = `<span class="active-doc-dot"></span><span class="active-doc-label">Using: <b>${name}</b></span>`;
+      bar.style.display = 'flex';
+    } else {
+      bar.style.display = 'none';
+    }
   }
 
   // ── RIPPLE EFFECT — attach to all current + future buttons ──────────────
@@ -235,6 +261,7 @@ let started = false;
         const list = document.getElementById('docList');
         const el   = document.createElement('div');
         el.className = 'doc-item';
+        el.setAttribute('data-filename', data.filename);
         el.setAttribute('onclick', 'selectDoc(this)');
         el.innerHTML = `
           <div class="doc-icon"></div>
@@ -242,8 +269,13 @@ let started = false;
             <div class="doc-name">${data.filename}</div>
             <div class="doc-meta">${data.chunks} chunks · indexed</div>
           </div>
-          <div class="doc-del" onclick="event.stopPropagation();deleteDocument('${data.filename}',this.closest('.doc-item'))"></div>`;
+          <button class="doc-del-btn" title="Remove file" onclick="event.stopPropagation();deleteDocument('${data.filename}',this.closest('.doc-item'))">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+            </svg>
+          </button>`;
         list.appendChild(el);
+        updateActiveDocLabel();
 
         await checkStatus();
         // Flash the stat cards
@@ -350,7 +382,7 @@ let started = false;
       // so multiple messages never clash with each other
       const area   = document.getElementById('chatArea');
       const msgRow = document.createElement('div');
-      msgRow.className = 'msg-row ai';
+      msgRow.className = 'msg-row ai msg-fade-in';
       msgRow.innerHTML = `${aiAva()}<div class="msg-body"><div class="bubble"></div></div>`;
       area.appendChild(msgRow);
       area.scrollTop = area.scrollHeight;
@@ -502,7 +534,8 @@ let started = false;
 
     // ── Overview card ──
     const ov = document.createElement('div');
-    ov.className = 'sum-overview';
+    ov.className = 'sum-overview sum-fade-in';
+    ov.style.animationDelay = '0ms';
     ov.innerHTML = `
       <div class="sum-overview-title"> What is this document about?</div>
       ${d.title ? `<div class="sum-overview-doc">${d.title}</div>` : ''}
@@ -540,7 +573,8 @@ let started = false;
     // ── Key points ──
     if (d.key_points && d.key_points.length > 0) {
       const kp = document.createElement('div');
-      kp.className = 'sum-card';
+      kp.className = 'sum-card sum-fade-in';
+      kp.style.animationDelay = '120ms';
       kp.innerHTML = `
         <div class="sum-card-title"> Key Points to Remember</div>
         <div class="key-points">${d.key_points.map(k=>`<div class="kp"><div class="kp-dot"></div>${k}</div>`).join('')}</div>`;
@@ -550,7 +584,8 @@ let started = false;
     // ── Concepts ──
     if (d.concepts && d.concepts.length > 0) {
       const cc = document.createElement('div');
-      cc.className = 'sum-card';
+      cc.className = 'sum-card sum-fade-in';
+      cc.style.animationDelay = '220ms';
       cc.innerHTML = `
         <div class="sum-card-title"> Important Terms</div>
         <div class="concept-chips">${d.concepts.map(c=>`<div class="concept-chip" onclick="sendQ('Explain ${c} in simple words')">${c}</div>`).join('')}</div>
@@ -1079,7 +1114,11 @@ let started = false;
   function autoResize(el)  { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,120)+'px'; }
   function handleKey(e)    { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
   function toggleTag(el)   { el.classList.toggle('on'); }
-  function selectDoc(el)   { document.querySelectorAll('.doc-item').forEach(d=>d.classList.remove('active')); el.classList.add('active'); }
+  function selectDoc(el) {
+    document.querySelectorAll('.doc-item').forEach(d => d.classList.remove('active'));
+    el.classList.add('active');
+    updateActiveDocLabel();
+  }
   function clearChat()     { document.getElementById('chatArea').innerHTML=''; started=false; }
   function togglePrompts() { document.getElementById('promptSuggestions').classList.toggle('open'); document.getElementById('promptToggle').classList.toggle('open'); }
 
@@ -1087,7 +1126,7 @@ let started = false;
   function addMsg(role, text) {
     const area = document.getElementById('chatArea');
     const el   = document.createElement('div');
-    el.className = `msg-row ${role}`;
+    el.className = `msg-row ${role} msg-fade-in`;
     el.innerHTML = `${role==='ai'?aiAva():'<div class="msg-ava user">U</div>'}<div class="msg-body"><div class="bubble">${text}</div></div>`;
     area.appendChild(el); area.scrollTop = area.scrollHeight;
   }
@@ -1095,7 +1134,7 @@ let started = false;
   function addAIMsg(r) {
     const area  = document.getElementById('chatArea');
     const el    = document.createElement('div');
-    el.className = 'msg-row ai';
+    el.className = 'msg-row ai msg-fade-in';
     const pills    = (r.sources||[]).map(s=>`<div class="src-pill"> ${s}</div>`).join('');
     const srcBlock = r.sources&&r.sources.length>0 ? `<div class="src-block"><div class="src-lbl">Sources used</div><div class="src-pills">${pills}</div></div>` : '';
     const confRow  = r.conf>0 ? `<div class="conf-row"><span>Confidence</span><div class="conf-track"><div class="conf-fill" style="width:${r.conf}%"></div></div><span>${r.conf}%</span></div>` : '';
