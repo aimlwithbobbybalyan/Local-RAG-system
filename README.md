@@ -1,5 +1,9 @@
 <div align="center">
 
+<img src="screenshots/logo-banner.png" alt="LocalRAG Logo Banner" height="50"/>
+
+<br/><br/>
+
 <svg xmlns="http://www.w3.org/2000/svg" width="110" height="110" viewBox="0 0 120 120" overflow="visible">
   <defs>
     <radialGradient id="logoBg" cx="50%" cy="50%" r="50%">
@@ -51,7 +55,7 @@
 Ask questions about your documents. Get AI answers in ~5–7 seconds.
 No cloud. No subscription. No internet after first setup.
 
-[🌐 **Website**](https://aimlwithbobbybalyan.github.io/Local-RAG-system) · [📖 **Docs**](#installation)
+[📖 **Docs**](#installation)
 
 </div>
 
@@ -73,13 +77,19 @@ Everything runs entirely on your machine. The LLM (`llama3.2:3b`) and embedding 
 
 ## Screenshots
 
+![Splash Screen](screenshots/splash.png)
+
 | Chat | Summary |
 |------|---------|
-| ![Chat](screenshots/chat.png) | ![Summary](screenshots/summary.png) |
+| ![Chat](screenshots/chat-light.png) | ![Summary](screenshots/summary.png) |
 
-| Quiz | Flashcards |
-|------|-----------|
-| ![Quiz](screenshots/quiz.png) | ![Flashcards](screenshots/flashcards.png) |
+| Flashcards | Upload |
+|-----------|--------|
+| ![Flashcards](screenshots/flashcards.png) | ![Upload](screenshots/upload.png) |
+
+| Welcome |  |
+|---------|--|
+| ![Welcome](screenshots/welcome.png) | |
 
 ---
 
