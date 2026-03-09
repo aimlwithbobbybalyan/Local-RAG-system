@@ -1239,9 +1239,76 @@ let started = false;
 
   // modals — unchanged
   const modalContent={
-    help:{title:'Help — How to use LocalRAG',body:'<h4>Step 1 — Upload a document</h4>Click the upload zone or drag and drop a PDF, DOCX or TXT file.<h4>Step 2 — Wait for indexing</h4>LocalRAG chunks and embeds your document. Takes 1-2 min first time.<h4>Step 3 — Ask questions</h4>Type any question and press Enter.<h4>Style tags</h4><span class=\'modal-tag\'>Teacher</span> <span class=\'modal-tag\'>Chat</span> <span class=\'modal-tag\'>Technical</span><br><br>Toggle these to change how AI answers.<h4>Delete Index</h4>Click the dustbin next to Clear in History to delete chroma_db.'},
-    about:{title:'About LocalRAG',body:'<h4>What is LocalRAG?</h4>A 100% offline AI document assistant. No internet, no cloud, no data sharing.<h4>Tech Stack</h4><span class=\'modal-tag\'>Python</span> <span class=\'modal-tag\'>Flask</span> <span class=\'modal-tag\'>Ollama</span> <span class=\'modal-tag\'>qwen2.5:3b</span> <span class=\'modal-tag\'>nomic-embed-text</span> <span class=\'modal-tag\'>ChromaDB</span><h4>Version</h4>LocalRAG v1.0.0 — College Project 2025<h4>Developer</h4>Built with purpose by a student passionate about AI and privacy.'},
-    privacy:{title:'Privacy Policy',body:'<h4>Your data stays on your device</h4>LocalRAG runs 100% locally. Nothing ever leaves your laptop.<h4>No internet required</h4>Works completely offline after installation.<h4>No tracking</h4>No usage data or personal information collected.<h4>No accounts</h4>No sign-up, no login, no email required. Ever.'}
+    help:{title:'How to use LocalRAG',body:`
+<h4>⚡ Before you start</h4>
+Make sure <strong>Ollama is running</strong> before launching. On slower machines, wait for pre-generation to finish before using Summary/Quiz/Flashcards/Exam. Green dot = ready.
+
+<h4>Steps</h4>
+<div style="display:grid;grid-template-columns:auto 1fr;gap:3px 10px;align-items:baseline">
+<strong style="color:var(--accent)">1. Upload</strong><span>Drag & drop or click — PDF, DOCX, TXT, MD. Max 3 docs.</span>
+<strong style="color:var(--accent)">2. Select</strong><span>Click a doc in the sidebar to make it active.</span>
+<strong style="color:var(--accent)">3. Use tabs</strong><span>Chat · Summary · Quiz · Flashcards · Exam</span>
+</div>
+
+<h4>Style Tags</h4>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;font-size:.75rem">
+<span><span class='modal-tag'>Teacher</span> Structured + examples</span>
+<span><span class='modal-tag'>Chat</span> Friendly tone</span>
+<span><span class='modal-tag'>Technical</span> In-depth breakdown</span>
+<span><span class='modal-tag'>Summary</span> Bullet overview</span>
+<span><span class='modal-tag'>Revision</span> Quick notes</span>
+<span><span class='modal-tag'>Compare</span> Side-by-side</span>
+</div>
+
+<h4>RAG Mode</h4>
+<strong>ON</strong> — answers strictly from your document only.<br>
+<strong>OFF</strong> — allows general knowledge too. Use for broad questions beyond the file.
+
+<h4>Language Support</h4>
+Supports <strong>English</strong>, <strong>Hindi</strong> and <strong>Hinglish</strong> naturally.<br>
+<em style="color:var(--muted)">"Yeh chapter kya explain karta hai?"</em> — works fine.
+
+<h4>Delete & Clear</h4>
+🗑 Doc delete — removes file + wipes ChromaDB index.<br>
+🗑 History dustbin — clears chat + resets index.
+
+<h4>⚠️ Performance</h4>
+Pre-generation runs in background after upload (3–10 min on slow hardware). Do not close the app while it runs.
+`},
+    about:{title:'About LocalRAG',body:`
+<h4>What is LocalRAG?</h4>
+A 100% offline AI study assistant. Upload notes, textbooks or papers — chat with them, get summaries, quizzes, flashcards and exam questions. No internet. No cloud. Runs entirely on your machine.
+
+<h4>Why I built this</h4>
+As a student I struggled with revising large documents. Existing AI tools need internet and send your data to servers. I built LocalRAG for students in India who study in Hindi, English or Hinglish — private, fast, offline, works on any laptop.
+
+<h4>What makes it different</h4>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;font-size:.78rem;margin-top:4px">
+<span>✦ 100% private & offline</span><span>✦ Hindi / Hinglish support</span>
+<span>✦ 5 study modes</span><span>✦ BM25 + ChromaDB hybrid</span>
+<span>✦ Runs on basic CPU</span><span>✦ No login, no account</span>
+</div>
+
+<h4>Tech Stack</h4>
+<span class='modal-tag'>Python</span> <span class='modal-tag'>Flask</span> <span class='modal-tag'>Ollama</span> <span class='modal-tag'>llama3.2:3b</span> <span class='modal-tag'>nomic-embed-text</span> <span class='modal-tag'>ChromaDB</span> <span class='modal-tag'>BM25</span> <span class='modal-tag'>LangChain</span>
+
+<h4>Developer</h4>
+<strong>Bobby Balyan</strong> — CS Student, CT Group of Institutions, Ludhiana.<br>
+<span style="color:var(--muted);font-size:.75rem">Passionate about AI, privacy and tools that help students learn.</span>
+
+<h4>Version</h4>
+LocalRAG v1.0.0 — Built for Students
+`},
+    privacy:{title:'Privacy Policy',body:`
+<h4>Your data stays on your device</h4>
+LocalRAG runs 100% locally. Nothing ever leaves your laptop.
+<h4>No internet required</h4>
+Works completely offline after installation.
+<h4>No tracking</h4>
+No usage data or personal information collected.
+<h4>No accounts</h4>
+No sign-up, no login, no email required. Ever.
+`}
   };
   function showModal(type){ document.getElementById('dropdown').classList.remove('open'); const m=modalContent[type]; document.getElementById('modalTitle').textContent=m.title; document.getElementById('modalBody').innerHTML=m.body; document.getElementById('modalOverlay').classList.add('open'); }
   function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
