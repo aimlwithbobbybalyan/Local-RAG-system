@@ -306,7 +306,7 @@ git push origin feature/your-feature-name
 
 Built by **Bobby Balyan** — CS student at CT Group of Institutions, Ludhiana.
 
-Started as a college project with one question: *can you get useful AI study tools running on a Ryzen 3 with 8GB RAM and no GPU?* Turns out yes — but it takes 8 rounds of profiling to get from 8 minutes to 5–7 seconds.
+Started as a personal project with one question: *can you get useful AI study tools running on a Ryzen 3 with 8GB RAM and no GPU?* Turns out yes — but it takes 9 rounds of profiling to get from 8 minutes to 5–7 seconds.
 
 📧 bobby.2301385@stu.ctgroup.in  
 🐙 [github.com/aimlwithbobbybalyan](https://github.com/aimlwithbobbybalyan)
