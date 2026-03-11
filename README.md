@@ -218,7 +218,7 @@ http://localhost:5000
 
 ## Usage
 
-1. **Upload** a `.pdf`, `.docx`, `.txt`, or `.md` file via the sidebar (max 50 MB, up to 3 files)
+1. **Upload** a `.pdf`, `.docx`, `.txt`, or `.md` file via the sidebar (up to 3 files)
 2. **Wait** a few seconds — the app indexes the document and starts pre-generating study materials in the background (5 LLM calls)
 3. **Chat tab** — type any question; answers stream in real-time with source citations (filename + page)
 4. **Summary tab** — instant once background generation completes
