@@ -137,13 +137,13 @@
  /* Modal */
  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:1000; align-items:center; justify-content:center; animation:fadeIn .2s ease; }
  .modal-overlay.open { display:flex; }
- .modal { background:var(--white); border-radius:16px; width:440px; max-width:90vw; box-shadow:0 8px 32px rgba(0,0,0,.18); overflow:hidden; }
- .modal-head { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border); }
+ .modal { background:var(--white); border-radius:16px; width:480px; max-width:92vw; max-height:88vh; box-shadow:0 8px 32px rgba(0,0,0,.18); overflow:hidden; display:flex; flex-direction:column; }
+ .modal-head { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid var(--border); flex-shrink:0; }
  .modal-title { font-size:.95rem; font-weight:700; color:var(--text); }
  .modal-close { width:28px; height:28px; border-radius:7px; border:1px solid var(--border); background:var(--bg); cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--muted); }
  .modal-close:hover { background:#fff0f0; border-color:#ffc9c9; color:#e03131; }
- .modal-body { padding:20px; font-size:.85rem; color:var(--text2); line-height:1.7; }
- .modal-body h4 { font-size:.82rem; font-weight:700; color:var(--text); margin:12px 0 5px; }
+ .modal-body { padding:16px 20px; font-size:.82rem; color:var(--text2); line-height:1.6; overflow-y:auto; flex:1; }
+ .modal-body h4 { font-size:.8rem; font-weight:700; color:var(--text); margin:10px 0 4px; }
  .modal-body h4:first-child { margin-top:0; }
  .modal-tag { display:inline-block; padding:2px 8px; border-radius:5px; background:var(--accent-soft); border:1px solid var(--accent-mid); color:var(--accent); font-size:.72rem; font-weight:600; font-family:'JetBrains Mono',monospace; margin:2px; }
 

@@ -1,16 +1,11 @@
 """
-app.py v2.1 — LocalRAG Flask backend.
-
-ROOT CAUSE FIX:
-  v2.0 pre_generate_all() was making 9 serial LLM calls = 20+ minutes.
-  v2.1 reduces to 4 LLM calls total in background (1 per feature).
-  Summary/Quiz/Flashcards/Exam each = 1 call with tight context.
+app.py v1.0 — LocalRAG Flask backend.
 
 Key settings for speed on CPU:
-  - num_predict = 350   (was 500/900 — biggest time saver)
+  - num_predict = 350   (short responses = fast. Math questions get 700)
   - num_ctx     = 2048  (sufficient for 2000 char context + prompt)
   - max_chars   = 2000  (feed less text = model responds faster)
-  - 1 section only for background gen (not 2-3)
+  - 4 LLM calls in background (1 per feature: Summary/Quiz/Flashcards/Exam)
 """
 
 from flask import Flask, request, jsonify, render_template, Response, stream_with_context
@@ -58,7 +53,7 @@ def get_llm():
         _llm = Ollama(
             model       = MODEL_NAME,
             temperature = 0.2,
-            num_predict = 350,   # KEY: was 900 in v1. Shorter = much faster.
+            num_predict = 350,   # Default. Math questions use 700 (auto-detected).
             num_ctx     = 2048,  # KEY: fits prompt + 2000 char context comfortably
         )
         logger.info("LLM ready.")
@@ -141,8 +136,7 @@ _generating    = False
 def pre_generate_all():
     """
     4 LLM calls total, run after upload.
-    v2.0 mistake was 9 serial calls = 20+ min.
-    v2.1 = 4 calls, each with 2000 char context = ~2-3 min total.
+    4 calls total, each with 2000 char context = ~2-3 min total.
     """
     global _generating, _content_cache
     _generating = True
@@ -583,7 +577,16 @@ Answer:"""
 
     def generate():
         try:
-            llm = Ollama(model=MODEL_NAME, temperature=0.2, num_predict=350, num_ctx=2048)
+            # Smart token limit — math needs more tokens to complete solutions
+            math_keywords = ['solve', 'find', 'calculate', 'prove', 'simplify',
+                             'tan', 'sin', 'cos', 'sec', 'cosec', 'cot',
+                             'equation', 'integral', 'derivative', 'matrix',
+                             'differentiate', 'integrate', 'factori', 'expand',
+                             'θ', 'alpha', 'beta', 'log', 'ln', '=', '^', '²', '³']
+            is_math = any(kw in question.lower() for kw in math_keywords)
+            num_pred = 700 if is_math else 350
+
+            llm = Ollama(model=MODEL_NAME, temperature=0.2, num_predict=num_pred, num_ctx=2048)
             for token in llm.stream(prompt):
                 yield f"data: {json.dumps({'token': token})}\n\n"
             yield "data: [DONE]\n\n"
@@ -759,8 +762,22 @@ def delete_document(filename):
     filepath = os.path.join(DOCS_FOLDER, filename)
     if not os.path.exists(filepath):
         return jsonify({"error": "File not found"}), 404
+
+    # Remove the file from disk
     os.remove(filepath)
+
+    # Always wipe chroma_db completely first so deleted file's chunks are gone
     release_vectorstore()
+    if os.path.exists(CHROMA_FOLDER):
+        try:
+            shutil.rmtree(CHROMA_FOLDER)
+        except Exception as e:
+            return jsonify({"error": f"Could not delete index: {str(e)}"}), 500
+
+    # Also clear the pre-gen cache for the deleted file
+    _content_cache.clear()
+
+    # Rebuild index from remaining files only
     remaining = [f for f in os.listdir(DOCS_FOLDER)
                  if f.endswith((".pdf", ".txt", ".docx", ".md"))]
     if remaining:
@@ -769,13 +786,8 @@ def delete_document(filename):
         vectorstore = create_vectorstore(chunks)
         build_bm25_index(chunks)
         Thread(target=pre_generate_all, daemon=True).start()
-    else:
-        if os.path.exists(CHROMA_FOLDER):
-            try:
-                shutil.rmtree(CHROMA_FOLDER)
-            except Exception as e:
-                return jsonify({"error": f"Could not delete index: {str(e)}"}), 500
-    return jsonify({"success": True, "message": f"'{filename}' deleted."})
+
+    return jsonify({"success": True, "message": f"'{filename}' deleted.", "remaining": len(remaining)})
 
 
 @app.route("/index", methods=["DELETE"])
@@ -801,9 +813,9 @@ def cache_status():
 
 if __name__ == "__main__":
     print("=" * 45)
-    print("  LocalRAG v2.1 starting...")
+    print("  LocalRAG v1.0 starting...")
     print(f"  Model     : {MODEL_NAME}")
-    print(f"  num_predict: 350  (was 900 — 2.5x faster)")
+    print(f"  num_predict: 350 (700 for math questions)")
     print(f"  num_ctx    : 2048 (fits prompt + context)")
     print(f"  Pre-gen    : 5 LLM calls after upload")
     print("  Open http://localhost:5000")
