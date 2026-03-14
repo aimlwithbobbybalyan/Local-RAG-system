@@ -55,7 +55,7 @@
 Ask questions about your documents. Get AI answers in ~5–7 seconds.
 No cloud. No subscription. No internet after first setup.
 
-[📖 **Docs**](#installation)
+[📖 **Docs**](#installation) · [💼 **LinkedIn Post**](https://www.linkedin.com/posts/bobby-balyan-9b1b1127a_ai-machinelearning-python-activity-7438598420195545088-raoN?utm_source=li_share&utm_content=feedcontent&utm_medium=g_dt_web&utm_campaign=copy)
 
 </div>
 
@@ -320,5 +320,5 @@ MIT — see [LICENSE](LICENSE).
 ---
 
 <div align="center">
-  <sub>LocalRAG v2.1 · Built with ❤️ · College Project 2025</sub>
+  <sub>LocalRAG v1.0.0 · Built with ❤️ · Built for Students</sub>
 </div>
