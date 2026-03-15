@@ -2,8 +2,6 @@
 
 <img src="screenshots/logo-banner.png" alt="LocalRAG Logo Banner" height="50"/>
 
-<br/><br/>
-
 <svg xmlns="http://www.w3.org/2000/svg" width="110" height="110" viewBox="0 0 120 120" overflow="visible">
   <defs>
     <radialGradient id="logoBg" cx="50%" cy="50%" r="50%">
@@ -154,6 +152,32 @@ This project went from **8+ minutes per response → ~5–7 seconds** through 8 
 | Cost per query | ₹0 |
 
 ---
+
+## How I Made It Fast
+
+The first version was painfully slow. Every question went through a long chain of steps, one by one, waiting for each to finish before starting the next. Like a queue — nothing moved until the person in front was done.
+
+Here is exactly what I changed, in simple terms:
+
+**1. Told the AI to write less**
+The model was generating up to 900 tokens per answer — way more than needed for a study question. I capped it at 350 for normal questions, and 700 for math and technical questions that need complete step-by-step solutions. The app auto-detects which type of question it is and picks the right limit. Less writing = faster response. This alone was the biggest single improvement.
+
+**2. Stopped giving it the whole document**
+Every chat question was sending the entire document to the AI. I changed it to first search for the top 3 most relevant chunks using BM25 + ChromaDB hybrid search — each chunk is 600 characters, so roughly 1800–2000 characters total — and send only those to the AI. The AI reads less, thinks less, answers faster.
+
+**3. Stopped restarting the AI on every question**
+The LLM was being loaded from scratch on every single request — like restarting your laptop every time you want to open a new tab. I made it a singleton — load once at startup, reuse forever. Saved 30–60 seconds per call. This also made pre-generation possible — since the LLM stays loaded, the app can put it to work immediately in the background after every upload.
+
+**4. Added BM25 keyword search**
+ChromaDB vector search is powerful but not instant. I added BM25 — a classic keyword search algorithm — that runs in milliseconds and finds relevant chunks before the vector search even runs. Together they form a hybrid retrieval system that is both faster and more accurate than either alone.
+
+**5. Switched from serial to parallel pre-generation**
+This was the biggest architectural change. Originally everything was serial — you clicked Summary, it generated, you waited. You clicked Quiz, it generated, you waited again. One by one, every time.
+
+I flipped it to parallel. The moment you upload a document, the app immediately fires off all background generation at once — Summary, Quiz, Flashcards and Exam — all running simultaneously in a background thread while you are already chatting. By the time you click any tab, it is already done and waiting for you. That is the core difference between serial and parallel execution.
+
+**6. Cached everything**
+All pre-generated content is stored in memory. Second visit to any tab = instant load. Cache resets automatically when a new document is uploaded so stale content never shows. The vector database (ChromaDB) persists on disk until you manually delete it or remove a document from the app.
 
 ## Tech Stack
 
